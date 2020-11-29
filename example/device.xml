@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0" configId="17">
+<specVersion>
+<major>2</major>
+<minor>0</minor>
+</specVersion>
+<device>
+<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
+<friendlyName>go-upnp test server</friendlyName>
+<manufacturer>mipi</manufacturer>
+<manufacturerURL>http://gitlab.com/mipimipi/</manufacturerURL>
+<modelDescription>go-upnp test device</modelDescription>
+<modelName>go-upnp Test UPnP Server</modelName>
+<modelNumber>0.1</modelNumber>
+<modelURL>http://gitlab.com/mipimipi/go-upnp</modelURL>
+<serialNumber>0123456789</serialNumber>
+<UDN>uuid:abf80100-ef6a-11ea-adc1-0242ac120002</UDN>
+<UPC></UPC>
+<serviceList>
+<service>
+<serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
+<SCPDURL></SCPDURL>
+<controlURL></controlURL>
+<eventSubURL></eventSubURL>
+</service>
+</serviceList>
+<presentationURL>/</presentationURL>
+</device>
+</root>
