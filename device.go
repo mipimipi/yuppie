@@ -1,0 +1,109 @@
+package yuppie
+
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+	"gitlab.com/mipimipi/yuppie/desc"
+	"gitlab.com/mipimipi/yuppie/internal/events"
+)
+
+// rootDevice represents an UPnP root device
+type rootDevice struct {
+	Desc *desc.RootDevice
+	*device
+}
+
+// device represents an UPnP device
+type device struct {
+	udn      string
+	services []*service
+	devices  []*device
+}
+
+// createFromDesc take devices and service descriptions and creates device and
+// service objects from it. listener is a listener for multicast eventing. It
+// returns a reference to the root device, a map of services and whether
+// multicast eventing is required.
+// Note: The key of svcDesc must correspong to the service ids in dvcDesc to
+// allow a proper connection between of services and devides
+func createFromDesc(dvcDesc *desc.RootDevice, svcDescs desc.ServiceMap, listener func() chan events.StateVar) (*rootDevice, serviceMap, bool, error) {
+	svcs := make(serviceMap)
+
+	dvc, multicast, err := newDevice(&dvcDesc.Device, svcDescs, listener, svcs)
+	if err != nil {
+		err = errors.Wrap(err, "cannot create device from device description")
+		log.Fatal(err)
+		return nil, nil, false, err
+	}
+
+	root := rootDevice{
+		dvcDesc,
+		dvc,
+	}
+
+	return &root, svcs, multicast, nil
+}
+
+// newDevice creates a new device. For embedded devices, it's called
+// recursively. See also CreateFromDesc.
+func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() chan events.StateVar, svcs serviceMap) (dvc *device, multicast bool, err error) {
+	log.Tracef("creating new device ...")
+
+	dvc = new(device)
+	dvc.udn = dvcDesc.UDN
+
+	// process service info
+	// note: this for-loop-variant had to be chosen since
+	//       "for ... range ..." copies the array items which does not
+	//       allow to change array items
+	svcRefs := &(dvcDesc.Services)
+	for i := 0; i < len(*svcRefs); i++ {
+		id := serviceID((*svcRefs)[i].ServiceID)
+		typ := newServiceType((*svcRefs)[i].ServiceType)
+
+		var ver serviceVersion
+		ver, err = newServiceVersion((*svcRefs)[i].ServiceType)
+		if err != nil {
+			err = errors.Wrapf(err, "could not determine service version for device '%s'", dvc.udn)
+			return
+		}
+
+		if _, exists := svcs[id.tail()]; exists {
+			err = fmt.Errorf("service id '%s' is used multiple times", id.tail())
+			return
+		}
+
+		svcDesc, exists := svcDescs[id.tail()]
+		if !exists {
+			err = fmt.Errorf("no descrption for service id '%s'", id.tail())
+			return
+		}
+
+		svc, multi, err := newService(id, typ, ver, svcDesc, listener)
+		if err != nil {
+			err = errors.Wrapf(err, "cannot create service of id '%s'", id)
+			return nil, false, err
+		}
+		svc.device = dvc
+		multicast = (multicast || multi)
+
+		dvc.services = append(dvc.services, svc)
+		svcs[id.tail()] = svc
+	}
+
+	// recursion: embedded devices
+	for _, subDesc := range dvcDesc.Devices {
+		subDvc, multi, err := newDevice(&subDesc, svcDescs, listener, svcs)
+		if err != nil {
+			err = errors.Wrapf(err, "cannot create sub device of device '%s", dvc.udn)
+			return nil, false, err
+		}
+		multicast = (multicast || multi)
+		dvc.devices = append(dvc.devices, subDvc)
+	}
+
+	log.Tracef("new device created")
+
+	return
+}

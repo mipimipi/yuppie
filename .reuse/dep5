@@ -1,0 +1,21 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: yuppie
+Upstream-Contact: Michael Picht <mipi@fsfe.org>
+Source: gitlab.com/mipimipi/yuppie
+
+Files: internal/*
+       desc/*
+       example/*
+       gen/*
+       CHANGELOG.md
+       README.md
+       .gitignore
+       go.mod
+       go.sum
+       *.go
+Copyright: 2020 Michael Picht <mipi@fsfe.org>
+License: GPL-3.0-or-later
+
+Files: example/music/*
+Copyright: 2016 Small Colin
+License: CC-BY-4.0
