@@ -103,8 +103,7 @@ func (me *Server) respond(wg *sync.WaitGroup, msg []byte, reqAddr *net.UDPAddr) 
 		// msg is either not a search request or it is mal-formed. In both
 		// cases the UPnP Device Architecture 2.0 spec required to silently
 		// ignore the request
-		err = errors.Wrap(err, "cannot create HTTP request from search request")
-		log.Info(err)
+		log.Infof("cannot create HTTP request from search request: %v", err)
 		return
 	}
 
@@ -114,8 +113,7 @@ func (me *Server) respond(wg *sync.WaitGroup, msg []byte, reqAddr *net.UDPAddr) 
 		// msg is either not a search request or it is mal-formed. In both
 		// cases the UPnP Device Architecture 2.0 spec required to silently
 		// ignore the request
-		err = errors.Wrap(err, "cannot analyze HTTP request")
-		log.Info(err)
+		log.Infof("cannot analyze HTTP request: %v", err)
 		return
 	}
 
@@ -323,7 +321,7 @@ func analyzeHTTPRequest(r *http.Request, index SearchIndex) (st string, mx uint,
 		var u uint64
 		u, err = strconv.ParseUint(mxHeader, 0, 0)
 		if err != nil {
-			log.Infof("search: invalid MX header %q: %v", mxHeader, err)
+			err = errors.Wrapf(err, "search: invalid MX header %q: %v", mxHeader, err)
 			return
 		}
 		// according to the UPnP Device Architecture 2.0 spec, MX shall be
@@ -375,12 +373,10 @@ func parseIntoHTTPRequest(msg *bufio.Reader) (r *http.Request, err error) {
 	var line []string
 	if line = strings.SplitN(s, " ", 3); len(line) < 3 {
 		err = fmt.Errorf("search: malformed request line: %s", s)
-		log.Info(err)
 		return nil, err
 	}
 	if line[1] != "*" {
 		err = fmt.Errorf("search: bad URL request: %s", line[1])
-		log.Info(err)
 		return nil, err
 	}
 
@@ -389,7 +385,6 @@ func parseIntoHTTPRequest(msg *bufio.Reader) (r *http.Request, err error) {
 	var ok bool
 	if r.ProtoMajor, r.ProtoMinor, ok = http.ParseHTTPVersion(strings.TrimSpace(line[2])); !ok {
 		err = errors.Wrapf(err, "search: malformed HTTP version: %s", line[2])
-		log.Info(err)
 		return nil, err
 	}
 	mimeHeader, err := tp.ReadMIMEHeader()
