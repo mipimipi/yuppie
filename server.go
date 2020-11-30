@@ -40,7 +40,7 @@ type Server struct {
 	configID      *types.ConfigID
 	ssdps         []*ssdp.Server
 	http          *http.Server
-	handlers      map[string](func(StateVars) (SOAPRespArgs, SOAPError))
+	handlers      map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError))
 	multicast     *events.Multicast
 	subscriptions events.Subscriptions
 	// Locals contains variables that are persisted in the status.json of
@@ -96,7 +96,7 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 	srv.cfg = cfg
 	srv.bootID = types.NewBootID()
 	srv.configID = new(types.ConfigID)
-	srv.handlers = make(map[string](func(StateVars) (SOAPRespArgs, SOAPError)))
+	srv.handlers = make(map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError)))
 	srv.Locals = make(map[string]string)
 	if err = srv.setStatus(); err != nil {
 		err = errors.Wrap(err, "cannot create UPnP server")
@@ -270,7 +270,7 @@ func (me *Server) HTTPHandleFunc(pattern string, handleFunc func(http.ResponseWr
 
 // SOAPHandleFunc allows to register functions to handle UPnP SOAP requests.
 // Such handlers are defined per service ID / action combination
-func (me *Server) SOAPHandleFunc(svcID string, act string, handler func(StateVars) (SOAPRespArgs, SOAPError)) {
+func (me *Server) SOAPHandleFunc(svcID string, act string, handler func(map[string]StateVar) (SOAPRespArgs, SOAPError)) {
 	me.handlers[svcID+"#"+act] = handler
 }
 

@@ -79,27 +79,27 @@ func setHTTPHandlers(srv *yuppie.Server) {
 // ContentDirectory service
 func setSOAPHandlers(srv *yuppie.Server) {
 	srv.SOAPHandleFunc("ContentDirectory", "GetSearchCapabilities",
-		func(reqArgs yuppie.StateVars) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
+		func(reqArgs map[string]yuppie.StateVar) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
 			return yuppie.SOAPRespArgs{"SearchCaps": ""}, yuppie.SOAPError{}
 		})
 	srv.SOAPHandleFunc("ContentDirectory", "GetSortCapabilities",
-		func(reqArgs yuppie.StateVars) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
+		func(reqArgs map[string]yuppie.StateVar) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
 			return yuppie.SOAPRespArgs{"SortCaps": ""}, yuppie.SOAPError{}
 		})
 	srv.SOAPHandleFunc("ContentDirectory", "GetFeatureList",
-		func(reqArgs yuppie.StateVars) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
+		func(reqArgs map[string]yuppie.StateVar) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
 			return yuppie.SOAPRespArgs{"FeatureList": ""}, yuppie.SOAPError{}
 		})
 	srv.SOAPHandleFunc("ContentDirectory", "GetSystemUpdateID",
-		func(reqArgs yuppie.StateVars) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
+		func(reqArgs map[string]yuppie.StateVar) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
 			return yuppie.SOAPRespArgs{"Id": "1"}, yuppie.SOAPError{}
 		})
 	srv.SOAPHandleFunc("ContentDirectory", "GetServiceResetToken",
-		func(reqArgs yuppie.StateVars) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
+		func(reqArgs map[string]yuppie.StateVar) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
 			return yuppie.SOAPRespArgs{"ResetToken": "1"}, yuppie.SOAPError{}
 		})
 	srv.SOAPHandleFunc("ContentDirectory", "Browse",
-		func(reqArgs yuppie.StateVars) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
+		func(reqArgs map[string]yuppie.StateVar) (yuppie.SOAPRespArgs, yuppie.SOAPError) {
 			return browse(reqArgs)
 		})
 }
@@ -134,7 +134,7 @@ func initStateVariables(srv *yuppie.Server) {
 }
 
 // browse implements the Browse action of the ContentDirectory service
-func browse(reqArgs yuppie.StateVars) (respArgs yuppie.SOAPRespArgs, soapErr yuppie.SOAPError) {
+func browse(reqArgs map[string]yuppie.StateVar) (respArgs yuppie.SOAPRespArgs, soapErr yuppie.SOAPError) {
 	// retrieve and check input arguments
 	objID, exists := reqArgs["ObjectID"]
 	if !exists || (objID.String() != "0" && objID.String() != "1" && objID.String() != "2") {

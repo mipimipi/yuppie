@@ -26,9 +26,6 @@ type StateVar interface {
 	Unlock()
 }
 
-// StateVars maps the name of a variable to the variable
-type StateVars map[string]StateVar
-
 // newStateVar creates a new state variable for the UPnP type typ with the value
 // val
 func newStateVar(typ, val string) (sv StateVar, err error) {

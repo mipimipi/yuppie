@@ -87,7 +87,7 @@ func (me *Server) parseSOAPAction(w http.ResponseWriter, r *http.Request) (id, a
 
 // parseSOAPArguments evaluates an HTTP request which is supposed to be a SOAP
 // action call and extract the arguments
-func (me *Server) parseSOAPArguments(w http.ResponseWriter, r *http.Request, svcID, act string) (args StateVars, err error) {
+func (me *Server) parseSOAPArguments(w http.ResponseWriter, r *http.Request, svcID, act string) (args map[string]StateVar, err error) {
 	// get request body
 	reqBody, err := ioutil.ReadAll(r.Body)
 
@@ -129,7 +129,7 @@ func (me *Server) parseSOAPArguments(w http.ResponseWriter, r *http.Request, svc
 		return
 	}
 
-	args = make(StateVars)
+	args = make(map[string]StateVar)
 	for _, arg := range action.Args {
 		// get argument spec. Note: Here, we can assume that the maps
 		// me.services and me.services[..].actSpecs contain the required
