@@ -10,149 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gitlab.com/mipimipi/yuppie/internal/network"
-)
-
-const (
-	// minimal subscription timeout in seconds as defined in UPnP Device
-	// Architecture 2.0
-	minSubTimeout time.Duration = 1800
-
-	// event interval in seconds
-	eventInterval time.Duration = 10
 )
 
 var (
 	reURLs    = regexp.MustCompile(`^(<.+>)+$`)
 	reTimeOut = regexp.MustCompile(`Second-\d+`)
 )
-
-// Subscription represents the subscription of one recipient to all evented
-// state variables
-type Subscription struct {
-	sid       uuid.UUID
-	timer     *time.Timer
-	urls      []*url.URL
-	stateVars []StateVar
-	sequence  uint32
-	stop      chan struct{}
-}
-
-// Subscriptions maps subscription ID's to the corresponding subscription
-type Subscriptions map[uuid.UUID]*Subscription
-
-// NewSubscriptionMap does what the name suggests
-func NewSubscriptionMap() Subscriptions {
-	return make(Subscriptions)
-}
-
-// Add adds a new subscription
-func (me Subscriptions) Add(dur time.Duration, urls []*url.URL, svs []StateVar) (sid uuid.UUID) {
-	// get new subscription id
-	sid = uuid.New()
-
-	// create new subscription
-	me[sid] = &Subscription{
-		sid: sid,
-		// after timeout (dur) is exceeded, the subscription is removed
-		timer: time.AfterFunc(
-			dur,
-			func() {
-				if err := me.Remove(sid); err != nil {
-					log.Errorf("could not remove subscription: %v", err)
-				}
-				log.Tracef("removed subscription %s due to timeout", sid.String())
-			},
-		),
-		urls:      urls,
-		stateVars: svs,
-		stop:      make(chan struct{}),
-	}
-
-	// send events periodically
-	me[sid].Run()
-
-	log.Tracef("added subscription %s of %s", sid.String(), urls[0].String())
-
-	return
-}
-
-// Remove removes the subscription with the ID sid. In case there's no
-// subscription with that ID, en error is returned
-func (me Subscriptions) Remove(sid uuid.UUID) (err error) {
-	_, ok := me[sid]
-	if !ok {
-		err = fmt.Errorf("no subscription with uuid %s found: cannot unsubscribe", sid)
-		log.Error(err)
-		return
-	}
-
-	// stop sending events periodically
-	me[sid].Stop()
-
-	log.Tracef("removed subscription %s of %s", sid.String(), me[sid].urls[0].String())
-
-	delete(me, sid)
-
-	return
-}
-
-// RemoveAll remove all subscriptions
-func (me Subscriptions) RemoveAll() {
-	for sid, sub := range me {
-		sub.Stop()
-		delete(me, sid)
-	}
-	log.Trace("all subscriptions removed")
-}
-
-// Renew renews the subscription with ID sid. In case there's no subscription
-// with that ID, en error is returned
-func (me Subscriptions) Renew(sid uuid.UUID, dur time.Duration) (err error) {
-	// check if subscription with sid exists
-	sub, ok := me[sid]
-	if !ok {
-		err = fmt.Errorf("no subscription with uuid:%s found: cannot renew subscription", sid.String())
-		log.Error(err)
-		return
-	}
-
-	sub.timer.Reset(dur)
-
-	log.Tracef("subscription %s of %s renewed", sid.String(), sub.urls[0].String())
-
-	return
-}
-
-// Run implements the main eventing loop: Each eventInterval seconds an event
-// for all state variables is sent until a stop request is received
-func (me Subscription) Run() {
-	me.sendEvent()
-
-	go func() {
-		ticker := time.NewTicker(eventInterval * time.Second)
-		defer ticker.Stop()
-
-		log.Tracef("subscription %s of %s started", me.sid.String(), me.urls[0].String())
-
-		for {
-			select {
-			case <-ticker.C:
-				me.sendEvent()
-			case <-me.stop:
-				log.Tracef("subscription %s of %s stopped", me.sid.String(), me.urls[0].String())
-				return
-			}
-		}
-	}()
-}
-
-// Stop stops the main event loop for the subscription
-func (me Subscription) Stop() {
-	close(me.stop)
-}
 
 // sendEvent sends an event to the recipient of this subscription. As the UPnP
 // Device Architecture 2.0 requires, it tries to send the message to all urls

@@ -31,7 +31,7 @@ type StateVar interface {
 func newStateVar(typ, val string) (sv StateVar, err error) {
 	f, exists := constructors[typ]
 	if !exists {
-		err = fmt.Errorf("could create state variable of type '%s', value '%s'", typ, val)
+		err = fmt.Errorf("could not create state variable of type '%s', value '%s'", typ, val)
 		return
 	}
 	return f(val)
@@ -39,14 +39,15 @@ func newStateVar(typ, val string) (sv StateVar, err error) {
 
 // StateVar represents a state variable
 type stateVar struct {
-	name        string
-	service     *service
-	evented     bool
-	multicasted bool
-	def         StateVar
-	list        map[string]bool
-	rng         rng
-	listener    func() chan events.StateVar
+	name            string
+	service         *service
+	toBeEvented     bool
+	toBeMulticasted bool
+	evented         bool
+	def             StateVar
+	list            map[string]bool
+	rng             rng
+	listener        func() chan events.StateVar
 	StateVar
 	*sync.Mutex
 }
@@ -70,12 +71,12 @@ func stateVarFromDesc(sv desc.StateVariable, svc *service, listener func() chan 
 	}
 
 	stateVar := stateVar{
-		name:        strings.TrimSpace(sv.Name),
-		service:     svc,
-		evented:     (sv.SendEvents == "yes"),
-		multicasted: (sv.Multicast == "yes"),
-		listener:    listener,
-		StateVar:    def,
+		name:            strings.TrimSpace(sv.Name),
+		service:         svc,
+		toBeEvented:     (sv.SendEvents == "yes"),
+		toBeMulticasted: (sv.Multicast == "yes"),
+		listener:        listener,
+		StateVar:        def,
 	}
 
 	if sv.DefaultValue != "" {
@@ -156,7 +157,7 @@ func (me *stateVar) ServiceID() string {
 
 // SendEvent triggers the sending of a multicast event for the state variable
 func (me *stateVar) SendEvent() {
-	if me.evented && me.multicasted {
+	if me.toBeEvented && me.toBeMulticasted {
 		log.Tracef("sent event for state variable '%s'", me.name)
 		me.listener() <- me
 	}
@@ -174,8 +175,16 @@ func (me *stateVar) Init(v interface{}) (err error) {
 // Set sets the value of the state variable to v
 // Note: A multicast event is sent.
 func (me *stateVar) Set(v interface{}) (err error) {
-	// inform multicast listener about change
-	if me.evented && me.multicasted && reflect.ValueOf(me.Get()) != reflect.ValueOf(v) {
+	// nothing to do if value would not change
+	if reflect.ValueOf(me.Get()) != reflect.ValueOf(v) {
+		return
+	}
+
+	// new eventing required
+	me.evented = false
+
+	// inform event listener about change
+	if me.toBeEvented || me.toBeMulticasted {
 		me.listener() <- me
 	}
 
@@ -224,4 +233,20 @@ func (me *stateVar) IsValid(s string) (bool, UPnPErrorCode) {
 	}
 
 	return true, 0
+}
+
+func (me *stateVar) SetEvented(evented bool) {
+	me.evented = evented
+}
+
+func (me *stateVar) Evented() bool {
+	return me.evented
+}
+
+func (me *stateVar) ToBeEvented() bool {
+	return me.toBeEvented
+}
+
+func (me *stateVar) ToBeMulticasted() bool {
+	return me.toBeMulticasted
 }

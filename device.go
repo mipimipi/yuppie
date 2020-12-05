@@ -23,18 +23,17 @@ type device struct {
 
 // createFromDesc take devices and service descriptions and creates device and
 // service objects from it. listener is a listener for multicast eventing. It
-// returns a reference to the root device, a map of services and whether
-// multicast eventing is required.
+// returns a reference to the root device and a map of services.
 // Note: The key of svcDesc must correspong to the service ids in dvcDesc to
 // allow a proper connection between of services and devides
-func createFromDesc(dvcDesc *desc.RootDevice, svcDescs desc.ServiceMap, listener func() chan events.StateVar) (*rootDevice, serviceMap, bool, error) {
+func createFromDesc(dvcDesc *desc.RootDevice, svcDescs desc.ServiceMap, listener func() chan events.StateVar) (*rootDevice, serviceMap, error) {
 	svcs := make(serviceMap)
 
-	dvc, multicast, err := newDevice(&dvcDesc.Device, svcDescs, listener, svcs)
+	dvc, err := newDevice(&dvcDesc.Device, svcDescs, listener, svcs)
 	if err != nil {
 		err = errors.Wrap(err, "cannot create device from device description")
 		log.Fatal(err)
-		return nil, nil, false, err
+		return nil, nil, err
 	}
 
 	root := rootDevice{
@@ -42,12 +41,12 @@ func createFromDesc(dvcDesc *desc.RootDevice, svcDescs desc.ServiceMap, listener
 		dvc,
 	}
 
-	return &root, svcs, multicast, nil
+	return &root, svcs, nil
 }
 
 // newDevice creates a new device. For embedded devices, it's called
 // recursively. See also CreateFromDesc.
-func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() chan events.StateVar, svcs serviceMap) (dvc *device, multicast bool, err error) {
+func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() chan events.StateVar, svcs serviceMap) (dvc *device, err error) {
 	log.Tracef("creating new device ...")
 
 	dvc = new(device)
@@ -80,13 +79,12 @@ func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() c
 			return
 		}
 
-		svc, multi, err := newService(id, typ, ver, svcDesc, listener)
+		svc, err := newService(id, typ, ver, svcDesc, listener)
 		if err != nil {
 			err = errors.Wrapf(err, "cannot create service of id '%s'", id)
-			return nil, false, err
+			return nil, err
 		}
 		svc.device = dvc
-		multicast = (multicast || multi)
 
 		dvc.services = append(dvc.services, svc)
 		svcs[id.tail()] = svc
@@ -94,12 +92,11 @@ func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() c
 
 	// recursion: embedded devices
 	for _, subDesc := range dvcDesc.Devices {
-		subDvc, multi, err := newDevice(&subDesc, svcDescs, listener, svcs)
+		subDvc, err := newDevice(&subDesc, svcDescs, listener, svcs)
 		if err != nil {
 			err = errors.Wrapf(err, "cannot create sub device of device '%s", dvc.udn)
-			return nil, false, err
+			return nil, err
 		}
-		multicast = (multicast || multi)
 		dvc.devices = append(dvc.devices, subDvc)
 	}
 

@@ -243,14 +243,14 @@ func (me *Server) serviceEventSubHandler(w http.ResponseWriter, r *http.Request)
 			var svs []events.StateVar
 			for _, svc := range me.services {
 				for _, sv := range svc.stateVars {
-					if sv.evented {
+					if sv.toBeEvented {
 						svs = append(svs, sv)
 					}
 				}
 			}
 
 			// assemble and send response
-			sid := me.subscriptions.Add(dur, urls, svs)
+			sid := me.evt.AddSub(dur, urls, svs)
 			w.Header().Set("DATE", time.Now().Format(time.RFC1123))
 			w.Header().Set("SERVER", me.ServerString())
 			w.Header().Set("SID", "uuid:"+sid.String())
@@ -276,7 +276,7 @@ func (me *Server) serviceEventSubHandler(w http.ResponseWriter, r *http.Request)
 				return
 			}
 
-			if err := me.subscriptions.Renew(uuid.MustParse(r.Header.Get("SID")[5:]), dur); err != nil {
+			if err := me.evt.RenewSub(uuid.MustParse(r.Header.Get("SID")[5:]), dur); err != nil {
 				err = errors.Wrapf(err, "SID %s not found - unable to accept renewal", r.Header.Get("SID"))
 				log.Error(err)
 				http.Error(w, fmt.Sprintf("SID %s not found - unable to accept renewal", r.Header.Get("SID")), http.StatusInternalServerError)
@@ -293,7 +293,7 @@ func (me *Server) serviceEventSubHandler(w http.ResponseWriter, r *http.Request)
 		}
 	case "UNSUBSCRIBE":
 		// unsubscribe
-		if err := me.subscriptions.Remove(uuid.MustParse(r.Header.Get("SID")[5:])); err != nil {
+		if err := me.evt.RemoveSub(uuid.MustParse(r.Header.Get("SID")[5:])); err != nil {
 			err = errors.Wrapf(err, "SID %s not found - unable to unsubscribe", r.Header.Get("SID"))
 			log.Error(err)
 			http.Error(w, fmt.Sprintf("SID %s not found - unable to unsubscribe", r.Header.Get("SID")), http.StatusInternalServerError)

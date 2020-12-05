@@ -113,7 +113,7 @@ func (me *Server) respond(wg *sync.WaitGroup, msg []byte, reqAddr *net.UDPAddr) 
 		// msg is either not a search request or it is mal-formed. In both
 		// cases the UPnP Device Architecture 2.0 spec required to silently
 		// ignore the request
-		log.Infof("cannot analyze HTTP request: %v", err)
+		//log.Infof("cannot analyze HTTP request: %v", err)
 		return
 	}
 

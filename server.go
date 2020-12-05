@@ -32,17 +32,16 @@ const (
 
 // Server represents the UPnP server
 type Server struct {
-	cfg           Config
-	Errs          chan error
-	device        *rootDevice
-	services      serviceMap
-	bootID        *types.BootID
-	configID      *types.ConfigID
-	ssdps         []*ssdp.Server
-	http          *http.Server
-	handlers      map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError))
-	multicast     *events.Multicast
-	subscriptions events.Subscriptions
+	cfg      Config
+	Errs     chan error
+	device   *rootDevice
+	services serviceMap
+	bootID   *types.BootID
+	configID *types.ConfigID
+	ssdps    []*ssdp.Server
+	http     *http.Server
+	handlers map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError))
+	evt      *events.Eventing
 	// Locals contains variables that are persisted in the status.json of
 	// yuppie
 	Locals map[string]string
@@ -67,29 +66,24 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 	}
 
 	srv = new(Server)
-	srv.subscriptions = events.NewSubscriptionMap()
 
 	// create optimized device and service objects from the descriptions. As a
 	// side effect it is evaluated if multicast eventing is required
-	var multicast bool
-	if srv.device, srv.services, multicast, err = createFromDesc(
+	if srv.device, srv.services, err = createFromDesc(
 		rootDesc,
 		svcDescs,
-		func() chan events.StateVar { return srv.multicast.Listener },
+		func() chan events.StateVar { return srv.evt.Listener },
 	); err != nil {
 		err = errors.Wrap(err, "cannot create UPnP server")
 		log.Fatal(err)
 		return
 	}
 
-	// set multicast eventing if required
-	if multicast {
-		srv.multicast, err = events.NewMulticast(cfg.Interfaces, srv.bootID)
-		if err != nil {
-			err = errors.Wrap(err, "cannot create UPnP server")
-			log.Fatal(err)
-			return
-		}
+	srv.evt, err = events.NewEventing(cfg.Interfaces, srv.bootID)
+	if err != nil {
+		err = errors.Wrap(err, "cannot create UPnP server")
+		log.Fatal(err)
+		return
 	}
 
 	srv.Errs = make(chan error)
@@ -145,9 +139,7 @@ func (me *Server) Connect() (err error) {
 	// increase BootID as required by UPnP Device Architecture 2.0 spec
 	me.bootID.Incr()
 
-	if me.multicast != nil {
-		me.multicast.Run()
-	}
+	me.evt.Run()
 
 	log.Trace("connected")
 	return
@@ -157,9 +149,7 @@ func (me *Server) Connect() (err error) {
 func (me *Server) Disconnect() {
 	log.Trace("disconnecting ...")
 
-	if me.multicast != nil {
-		me.multicast.Stop()
-	}
+	me.evt.Stop()
 
 	// stop SSDP servers
 	var wg sync.WaitGroup
@@ -183,14 +173,12 @@ func (me *Server) Run(ctx context.Context, wg *sync.WaitGroup) {
 		me.Disconnect()
 		_ = me.http.Shutdown(ctx)
 		close(me.Errs)
-		me.subscriptions.RemoveAll()
+		me.evt.RemoveAllSubs()
 		wg.Done()
 	}()
 
-	// start listener for multicast events
-	if me.multicast != nil {
-		me.multicast.Listen(ctx)
-	}
+	// start eventing listener for state variable changes
+	me.evt.Listen(ctx)
 
 	// initial multicast eventing of state variables
 	me.sendEvents()
@@ -275,7 +263,7 @@ func (me *Server) SOAPHandleFunc(svcID string, act string, handler func(map[stri
 }
 
 // sendEvents traverses through the device tree and sends an initial event for
-// each to-be-evented state variable
+// each to-be-multicasted state variables
 func (me *Server) sendEvents() {
 	log.Trace("sending initial events ...")
 

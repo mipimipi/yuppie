@@ -2,139 +2,22 @@ package events
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"net"
-	"sync"
-	"time"
 
-	"github.com/pkg/errors"
 	utils "gitlab.com/mipimipi/go-utils"
 	"gitlab.com/mipimipi/yuppie/internal/network"
-	"gitlab.com/mipimipi/yuppie/internal/types"
 )
 
-// multicast interval in seconds
-const multicastInterval time.Duration = 10
-
-// IP address for evnt multicasting
-const multicastAddrIPv4 = "239.255.255.246:7900"
-
-var multicastUDPAddr *net.UDPAddr
-
-func init() {
-	var err error
-	multicastUDPAddr, err = net.ResolveUDPAddr("udp4", multicastAddrIPv4)
-	if err != nil {
-		log.Panicf("could not resolve %s: %s", multicastAddrIPv4, err)
-	}
-}
-
-// Multicast implements event mutlicasting
-type Multicast struct {
-	Listener   chan StateVar
-	key        uint32
-	changes    []StateVar
-	stop       chan struct{}
-	mutChanges sync.Mutex
-	infs       []net.Interface
-	bootID     *types.BootID
-}
-
-// NewMulticast creates a Multicast instance. wanted contains the list of network
-// interfaces that where configured, booID is a function that returns the current
-// BootID. if no interfaces are configured, all interfaces are used
-func NewMulticast(wanted []string, bootID *types.BootID) (mul *Multicast, err error) {
-	mul = new(Multicast)
-
-	mul.Listener = make(chan StateVar)
-
-	mul.bootID = bootID
-	mul.infs, err = network.Interfaces(wanted)
-	if err != nil {
-		err = errors.Wrap(err, "cannot determine network interfaces for multicast events")
+// send triggers sending multicast event messages for all changed state
+// variables via all interfaces
+func (me *Eventing) sendMulticast(svs []StateVar) {
+	// nothing to do if state variables array is empty
+	if len(svs) == 0 {
 		return
 	}
 
-	return
-}
-
-// Listen listens to changes for state variables and stores them in me.changes
-func (me *Multicast) Listen(ctx context.Context) {
-	go func() {
-		defer func() {
-			close(me.Listener)
-			log.Trace("multicast listener stopped")
-		}()
-
-		log.Trace("multicast listener started")
-
-		for {
-			select {
-			case sv := <-me.Listener:
-				log.Tracef("received change notification for '%s'", sv.Name())
-				// me.changes must only be changed with a lock since it can be
-				// changed concurrently in different go functions
-				me.mutChanges.Lock()
-				me.changes = append(me.changes, sv)
-				me.mutChanges.Unlock()
-
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-}
-
-// Run triggers regular multicast event messages
-func (me *Multicast) Run() {
-
-	go func() {
-		me.stop = make(chan struct{})
-		ticker := time.NewTicker(multicastInterval * time.Second)
-
-		defer func() {
-			ticker.Stop()
-			close(me.stop)
-			log.Trace("multicast: stopped")
-		}()
-
-		log.Trace("multicast: running")
-
-		for {
-			select {
-			case <-ticker.C:
-				if len(me.changes) > 0 {
-					me.send()
-				}
-
-			case <-me.stop:
-				return
-			}
-		}
-	}()
-}
-
-// Stop stops sending regular change events
-func (me *Multicast) Stop() {
-	me.stop <- struct{}{}
-}
-
-// send triggers sending event messages for all changed state variables
-// via all interfaces
-func (me *Multicast) send() {
 	log.Trace("sending multicast events ...")
-
-	// collect state variables to be sent
-	svs := make(map[string]StateVar)
-	me.mutChanges.Lock()
-	for _, sv := range me.changes {
-		if _, exists := svs[sv.Name()]; !exists {
-			svs[sv.Name()] = sv
-		}
-	}
-	me.changes = nil
-	me.mutChanges.Unlock()
 
 	for _, sv := range svs {
 		go broadcast(me.key, sv, me.infs, me.bootID.Val())

@@ -64,9 +64,8 @@ type serviceMap map[string]*service
 
 // newService creates a new service for a certain id, type and version, based
 // on a service description. A listener for multicast eventing is assigned to
-// the state variables of the service. It returns a reference to the service
-// and whether multicast eventing is required.
-func newService(id serviceID, typ serviceType, ver serviceVersion, svcDesc *desc.Service, listener func() chan events.StateVar) (*service, bool, error) {
+// the state variables of the service. It returns a reference to the service.
+func newService(id serviceID, typ serviceType, ver serviceVersion, svcDesc *desc.Service, listener func() chan events.StateVar) (*service, error) {
 	svc := service{
 		id:   id,
 		typ:  typ,
@@ -75,14 +74,12 @@ func newService(id serviceID, typ serviceType, ver serviceVersion, svcDesc *desc
 	}
 
 	// create statevars map
-	multicast := false
 	svc.stateVars = make(map[string](*stateVar))
 	for _, sv := range svcDesc.ServiceStateTable {
 		var err error
 		if svc.stateVars[sv.Name], err = stateVarFromDesc(sv, &svc, listener); err != nil {
-			return nil, false, err
+			return nil, err
 		}
-		multicast = (multicast || svc.stateVars[sv.Name].multicasted)
 	}
 
 	// create actions map
@@ -90,7 +87,7 @@ func newService(id serviceID, typ serviceType, ver serviceVersion, svcDesc *desc
 	for _, act := range svcDesc.Actions {
 		if _, exists := svc.actSpecs[act.Name]; exists {
 			err := fmt.Errorf("action with name '%s' exists already", act.Name)
-			return nil, false, err
+			return nil, err
 		}
 
 		args := make(map[string](*stateVar))
@@ -106,11 +103,11 @@ func newService(id serviceID, typ serviceType, ver serviceVersion, svcDesc *desc
 			sv, exists := svc.stateVars[arg.RelatedStateVariable]
 			if !exists {
 				err := fmt.Errorf("state variable '%s' for argument '%s' not found", arg.RelatedStateVariable, arg.Name)
-				return nil, false, err
+				return nil, err
 			}
 			svc.actSpecs[act.Name][arg.Name] = sv
 		}
 	}
 
-	return &svc, false, nil
+	return &svc, nil
 }
