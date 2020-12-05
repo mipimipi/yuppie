@@ -1,8 +1,14 @@
+## [v0.2.1](https://gitlab.com/mipimipi/yuppie/-/tags/v0.2.1) (2020-12-05)
+
+### Changed
+
+* Refined eventing
+
 ## [v0.2.0](https://gitlab.com/mipimipi/yuppie/-/tags/v0.2.0) (2020-11-30)
 
 ### Changed
 
-* Refined error handling and error handling
+* Refined error handling
 
 ### Removed
 
