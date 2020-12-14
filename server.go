@@ -82,13 +82,6 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 		return
 	}
 
-	srv.evt, err = events.NewEventing(cfg.Interfaces, srv.bootID)
-	if err != nil {
-		err = errors.Wrap(err, "cannot create UPnP server")
-		log.Fatal(err)
-		return
-	}
-
 	srv.Errs = make(chan error)
 	srv.cfg = cfg
 	srv.bootID = types.NewBootID()
@@ -97,6 +90,15 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 	srv.soapHandlers = make(map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError)))
 	srv.Locals = make(map[string]string)
 	if err = srv.setStatus(); err != nil {
+		err = errors.Wrap(err, "cannot create UPnP server")
+		log.Fatal(err)
+		return
+	}
+
+	// srv.evt can only be create after srv.bootID is created. Otherwise a dump
+	// will occur if state variables are multicasted
+	srv.evt, err = events.NewEventing(cfg.Interfaces, srv.bootID)
+	if err != nil {
 		err = errors.Wrap(err, "cannot create UPnP server")
 		log.Fatal(err)
 		return
