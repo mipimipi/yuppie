@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gitlab.com/mipimipi/yuppie/internal/network"
 )
@@ -18,6 +19,16 @@ var (
 	reURLs    = regexp.MustCompile(`^(<.+>)+$`)
 	reTimeOut = regexp.MustCompile(`Second-\d+`)
 )
+
+// Subscription represents the subscription of one recipient to all evented
+// state variables
+type Subscription struct {
+	sid       uuid.UUID
+	timer     *time.Timer
+	urls      []*url.URL
+	stateVars []StateVar
+	sequence  uint32
+}
 
 // sendEvent sends an event to the recipient of this subscription. As the UPnP
 // Device Architecture 2.0 requires, it tries to send the message to all urls

@@ -16,9 +16,10 @@ import (
 
 const httpProtocol = "http"
 
-// createHTTPServer creates the new HTTP server srv.http
-func (me *Server) createHTTPServer() {
-	log.Trace("creating HTTP server")
+// createPresentationServer creates a new HTTP server me.http. The server only serves
+// the presentation URL of the root device
+func (me *Server) createPresentationServer() {
+	log.Trace("creating presentation server")
 
 	// create HTTP server
 	me.http = new(http.Server)
@@ -28,41 +29,57 @@ func (me *Server) createHTTPServer() {
 	mux := http.NewServeMux()
 	me.http.Handler = mux
 
-	me.setHTTPHandleFuncs(mux)
+	mux.HandleFunc(me.device.Desc.Device.PresentationURL, me.presentationHandler)
+
+	log.Tracef("presentation server created on %s", me.http.Addr)
+}
+
+// createHTTPServer creates the new HTTP server me.http. It serves the
+// presentation URL of the root device and all other required URLs
+func (me *Server) createHTTPServer() {
+	log.Trace("creating HTTP server")
+
+	me.createPresentationServer()
+	me.setHTTPHandleFuncs()
 
 	log.Tracef("HTTP server created on %s", me.http.Addr)
 }
 
-// setHttpHandleFuncs registers handler functions for device description and
-// service description requests
-func (me *Server) setHTTPHandleFuncs(mux *http.ServeMux) {
+// setHttpHandleFuncs registers handler functions for device description,
+// service description requests and other URL patterns
+func (me *Server) setHTTPHandleFuncs() {
 	// device description
-	mux.HandleFunc(deviceDescPath,
+	me.http.Handler.(*http.ServeMux).HandleFunc(deviceDescPath,
 		func(w http.ResponseWriter, r *http.Request) {
 			me.deviceDescHandler(w, r)
 		},
 	)
 
 	// service descriptions
-	mux.HandleFunc(serviceDescPath,
+	me.http.Handler.(*http.ServeMux).HandleFunc(serviceDescPath,
 		func(w http.ResponseWriter, r *http.Request) {
 			me.serviceDescHandler(w, r)
 		},
 	)
 
 	// service control
-	mux.HandleFunc(serviceControlPath,
+	me.http.Handler.(*http.ServeMux).HandleFunc(serviceControlPath,
 		func(w http.ResponseWriter, r *http.Request) {
 			me.serviceControlHandler(w, r)
 		},
 	)
 
 	// event subscription
-	mux.HandleFunc(serviceEventSubPath,
+	me.http.Handler.(*http.ServeMux).HandleFunc(serviceEventSubPath,
 		func(w http.ResponseWriter, r *http.Request) {
 			me.serviceEventSubHandler(w, r)
 		},
 	)
+
+	// other patterns
+	for pattern, handleFunc := range me.httpHandlers {
+		me.http.Handler.(*http.ServeMux).HandleFunc(pattern, handleFunc)
+	}
 }
 
 // deviceDescHandler handles requests for the device description, i.e. requests
@@ -159,7 +176,7 @@ func (me *Server) serviceControlHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// verify that a handler for that action exists
-	handler, exists := me.handlers[svcID+"#"+actName]
+	handler, exists := me.soapHandlers[svcID+"#"+actName]
 	if !exists {
 		me.sendSOAPFault(w,
 			SOAPError{

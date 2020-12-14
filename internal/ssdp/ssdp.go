@@ -94,7 +94,7 @@ func New(data DiscoveryData, index SearchIndex, bootID *types.BootID, configID *
 // Connect connects the SSDP server (i.e. starts the notification and search
 // response processes)
 func (me *Server) Connect() (err error) {
-	log.Tracef("connection SSDP server for interface %s", me.inf.Name)
+	log.Tracef("connecting SSDP server on interface '%s' ...", me.inf.Name)
 
 	if me.conn, err = network.UDPConn(me.inf, multicastUDPAddr); err != nil {
 		err = errors.Wrapf(err, "cannot connect SSDP server on interface %s", me.inf.Name)
@@ -107,7 +107,7 @@ func (me *Server) Connect() (err error) {
 	go me.notify()
 	go me.listenAndRespond()
 
-	log.Tracef("SSDP server for interface '%s' connected", me.inf.Name)
+	log.Tracef("SSDP server on interface '%s' connected", me.inf.Name)
 	return
 }
 
@@ -120,7 +120,7 @@ func (me *Server) Disconnect(wg *sync.WaitGroup) {
 		wg.Done()
 	}()
 
-	log.Tracef("disconnecting SSDP server on interface '%s'", me.inf.Name)
+	log.Tracef("disconnecting SSDP server on interface '%s' ...", me.inf.Name)
 
 	// send stop signals to notify and response loops and wait for stop
 	// confirmation

@@ -32,16 +32,19 @@ const (
 
 // Server represents the UPnP server
 type Server struct {
-	cfg      Config
-	Errs     chan error
-	device   *rootDevice
-	services serviceMap
-	bootID   *types.BootID
-	configID *types.ConfigID
-	ssdps    []*ssdp.Server
-	http     *http.Server
-	handlers map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError))
-	evt      *events.Eventing
+	cfg                 Config
+	Errs                chan error
+	device              *rootDevice
+	services            serviceMap
+	bootID              *types.BootID
+	configID            *types.ConfigID
+	ssdps               []*ssdp.Server
+	http                *http.Server
+	presentationHandler func(http.ResponseWriter, *http.Request)
+	httpHandlers        map[string](func(http.ResponseWriter, *http.Request))
+	soapHandlers        map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError))
+	evt                 *events.Eventing
+	connected           bool
 	// Locals contains variables that are persisted in the status.json of
 	// yuppie
 	Locals map[string]string
@@ -90,7 +93,8 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 	srv.cfg = cfg
 	srv.bootID = types.NewBootID()
 	srv.configID = new(types.ConfigID)
-	srv.handlers = make(map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError)))
+	srv.httpHandlers = make(map[string](func(http.ResponseWriter, *http.Request)))
+	srv.soapHandlers = make(map[string](func(map[string]StateVar) (SOAPRespArgs, SOAPError)))
 	srv.Locals = make(map[string]string)
 	if err = srv.setStatus(); err != nil {
 		err = errors.Wrap(err, "cannot create UPnP server")
@@ -104,8 +108,6 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 		log.Fatal(err)
 		return
 	}
-
-	srv.createHTTPServer()
 
 	log.Trace("UPnP server created")
 
@@ -123,8 +125,30 @@ func (me *Server) ConfigID() uint32 {
 }
 
 // Connect starts the SSDP processes and multicast eventing
-func (me *Server) Connect() (err error) {
+func (me *Server) Connect(ctx context.Context) (err error) {
+	// nothing to do if already connected
+	if me.connected {
+		log.Info("tried to connect though server is already connected")
+		return
+	}
+
 	log.Trace("connecting ...")
+
+	// shutdown presentation HTTP server
+	_ = me.http.Shutdown(ctx)
+
+	// create general HTTP server
+	me.createHTTPServer()
+
+	// start general HTTP server
+	go func() {
+		if err := me.http.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("HTTP ListenAndServe: %v", err)
+			me.Errs <- err
+			return
+		}
+	}()
+	log.Trace("general http server started")
 
 	// start SSDP servers
 	for _, ssdp := range me.ssdps {
@@ -141,23 +165,38 @@ func (me *Server) Connect() (err error) {
 
 	me.evt.Run()
 
+	me.connected = true
+
 	log.Trace("connected")
 	return
 }
 
 // Disconnect stops the SSDP processes and the multicast eventing
-func (me *Server) Disconnect() {
+func (me *Server) Disconnect(ctx context.Context) {
+	// nothing to do if not connected
+	if !me.connected {
+		log.Info("tried to disconnect though server is not connected")
+		return
+	}
+
 	log.Trace("disconnecting ...")
 
-	me.evt.Stop()
+	me.stop(ctx)
 
-	// stop SSDP servers
-	var wg sync.WaitGroup
-	for _, ssdp := range me.ssdps {
-		wg.Add(1)
-		go ssdp.Disconnect(&wg)
-	}
-	wg.Wait()
+	// create presentation HTTP server
+	me.createPresentationServer()
+
+	// start presentation HTTP server
+	go func() {
+		if err := me.http.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("HTTP ListenAndServe: %v", err)
+			me.Errs <- err
+			return
+		}
+	}()
+	log.Trace("presentation HTTP server started")
+
+	me.connected = false
 
 	log.Trace("disconnected")
 }
@@ -170,8 +209,7 @@ func (me *Server) Errors() <-chan error {
 // Run starts the server. It can be stopped via the context ctx
 func (me *Server) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer func() {
-		me.Disconnect()
-		_ = me.http.Shutdown(ctx)
+		me.stop(ctx)
 		close(me.Errs)
 		me.evt.RemoveAllSubs()
 		wg.Done()
@@ -183,7 +221,10 @@ func (me *Server) Run(ctx context.Context, wg *sync.WaitGroup) {
 	// initial multicast eventing of state variables
 	me.sendEvents()
 
-	// start http server
+	// create presentation HTTP server
+	me.createPresentationServer()
+
+	// start presentation HTTP server
 	go func() {
 		if err := me.http.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("HTTP ListenAndServe: %v", err)
@@ -191,12 +232,8 @@ func (me *Server) Run(ctx context.Context, wg *sync.WaitGroup) {
 			return
 		}
 	}()
-	log.Trace("http server started")
+	log.Trace("presentation HTTP server started")
 
-	if err := me.Connect(); err != nil {
-		me.Errs <- err
-		return
-	}
 	log.Trace("running ...")
 
 	// wait for cancellation
@@ -253,13 +290,21 @@ func (me *Server) StateVariable(svcID, svName string) (StateVar, bool) {
 func (me *Server) HTTPHandleFunc(pattern string, handleFunc func(http.ResponseWriter, *http.Request)) {
 	log.Tracef("set handle func for pattern '%s'", pattern)
 
-	me.http.Handler.(*http.ServeMux).HandleFunc(pattern, handleFunc)
+	me.httpHandlers[pattern] = handleFunc
+}
+
+// PresentationHandleFunc sets the handler function for HTTP calls to the
+// presentation url of the root device
+func (me *Server) PresentationHandleFunc(handleFunc func(http.ResponseWriter, *http.Request)) {
+	log.Tracef("set handle func for presentatio URL '%s'", me.device.Desc.Device.PresentationURL)
+
+	me.presentationHandler = handleFunc
 }
 
 // SOAPHandleFunc allows to register functions to handle UPnP SOAP requests.
 // Such handlers are defined per service ID / action combination
 func (me *Server) SOAPHandleFunc(svcID string, act string, handler func(map[string]StateVar) (SOAPRespArgs, SOAPError)) {
-	me.handlers[svcID+"#"+act] = handler
+	me.soapHandlers[svcID+"#"+act] = handler
 }
 
 // sendEvents traverses through the device tree and sends an initial event for
@@ -311,6 +356,26 @@ func (me *Server) setDescPaths() {
 	}
 
 	setDescPaths(&me.device.Desc.Device)
+}
+
+// stop stop the SSDP processes, the eventing and the (general) HTTP server
+func (me *Server) stop(ctx context.Context) {
+	log.Trace("stopping ...")
+
+	me.evt.Stop()
+
+	// stop SSDP servers
+	var wg sync.WaitGroup
+	for _, ssdp := range me.ssdps {
+		wg.Add(1)
+		go ssdp.Disconnect(&wg)
+	}
+	wg.Wait()
+
+	// shutdown general HTTP server
+	_ = me.http.Shutdown(ctx)
+
+	log.Trace("stopped")
 }
 
 // validateInputData checks if the device and service descriptions that were

@@ -1,3 +1,9 @@
+## [v0.3.0](https://gitlab.com/mipimipi/yuppie/-/tags/v0.2.2) (2020-12-13)
+
+### Added
+
+* HTTP requests are served also if the UPnP server is not connected. That's useful to display status information
+
 ## [v0.2.1](https://gitlab.com/mipimipi/yuppie/-/tags/v0.2.1) (2020-12-05)
 
 ### Changed
