@@ -29,7 +29,7 @@ func (me *Server) createPresentationServer() {
 	mux := http.NewServeMux()
 	me.http.Handler = mux
 
-	mux.HandleFunc(me.device.Desc.Device.PresentationURL, me.presentationHandler)
+	mux.HandleFunc(me.Device.Desc.Device.PresentationURL, me.presentationHandler)
 
 	log.Tracef("presentation server created on %s", me.http.Addr)
 }
@@ -89,13 +89,13 @@ func (me *Server) deviceDescHandler(w http.ResponseWriter, r *http.Request) {
 
 	// device description must contain current ConfigID as required by UPnP
 	// Device Architecture 2.0
-	me.device.Desc.ConfigID = me.configID.Val()
+	me.Device.Desc.ConfigID = me.configID.Val()
 
 	// set the paths for the service descriptions in the device description structures
 	me.setDescPaths()
 
 	// render service description
-	desc, err := utils.MarshalXML(me.device.Desc)
+	desc, err := utils.MarshalXML(me.Device.Desc)
 	if err != nil {
 		log.Errorf("couldn't marshal device description: %v", err)
 		http.Error(w, "can't create device description", http.StatusInternalServerError)

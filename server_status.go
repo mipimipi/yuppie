@@ -83,8 +83,8 @@ func (me *Server) setStatus() (err error) {
 	for id, hash := range st.Hashes {
 		var h uint64
 		if id == "device::root" {
-			me.device.Desc.ConfigID = 0
-			if h, err = me.device.Desc.Hash(); err != nil {
+			me.Device.Desc.ConfigID = 0
+			if h, err = me.Device.Desc.Hash(); err != nil {
 				continue
 			}
 			if hash != h {
@@ -147,9 +147,9 @@ func (me *Server) writeStatus() error {
 	// - hashes
 	//   initialize ConfigID to have a proper hash (ConfigID is not part of the
 	//   configuration and thus would distort the hash)
-	me.device.Desc.ConfigID = 0
+	me.Device.Desc.ConfigID = 0
 	st.Hashes = make(map[string]uint64)
-	h, err := me.device.Desc.Hash()
+	h, err := me.Device.Desc.Hash()
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,7 @@ const (
 type Server struct {
 	cfg                 Config
 	Errs                chan error
-	device              *rootDevice
+	Device              *rootDevice
 	services            serviceMap
 	bootID              *types.BootID
 	configID            *types.ConfigID
@@ -72,7 +72,7 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 
 	// create optimized device and service objects from the descriptions. As a
 	// side effect it is evaluated if multicast eventing is required
-	if srv.device, srv.services, err = createFromDesc(
+	if srv.Device, srv.services, err = createFromDesc(
 		rootDesc,
 		svcDescs,
 		func() chan events.StateVar { return srv.evt.Listener },
@@ -298,7 +298,7 @@ func (me *Server) HTTPHandleFunc(pattern string, handleFunc func(http.ResponseWr
 // PresentationHandleFunc sets the handler function for HTTP calls to the
 // presentation url of the root device
 func (me *Server) PresentationHandleFunc(handleFunc func(http.ResponseWriter, *http.Request)) {
-	log.Tracef("set handle func for presentatio URL '%s'", me.device.Desc.Device.PresentationURL)
+	log.Tracef("set handle func for presentatio URL '%s'", me.Device.Desc.Device.PresentationURL)
 
 	me.presentationHandler = handleFunc
 }
@@ -326,7 +326,7 @@ func (me *Server) sendEvents() {
 		}
 	}
 
-	sendEvents(me.device.device)
+	sendEvents(me.Device.device)
 
 	log.Trace("initial events sent")
 }
@@ -357,7 +357,7 @@ func (me *Server) setDescPaths() {
 		}
 	}
 
-	setDescPaths(&me.device.Desc.Device)
+	setDescPaths(&me.Device.Desc.Device)
 }
 
 // stop stop the SSDP processes, the eventing and the (general) HTTP server

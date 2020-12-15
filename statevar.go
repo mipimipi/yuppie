@@ -147,7 +147,7 @@ func (me *stateVar) ServiceVersion() string {
 // DeviceUDN returns the UDN of the device that the service provides the state
 // variable belongs to
 func (me *stateVar) DeviceUDN() string {
-	return me.service.device.udn
+	return me.service.device.UDN
 }
 
 // ServiceID returns the id of the service the state variable belongs to

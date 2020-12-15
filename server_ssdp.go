@@ -55,7 +55,7 @@ func (me *Server) createDiscoveryData() (data ssdp.DiscoveryData) {
 	// network interface of that server
 	data.Location = httpProtocol + "://{{ADDRESS}}" + deviceDescPath
 	data.MaxAge = me.cfg.MaxAge
-	data.AssIDs = getDeviceAssets(&me.device.Desc.Device, true)
+	data.AssIDs = getDeviceAssets(&me.Device.Desc.Device, true)
 
 	return
 }
@@ -97,7 +97,7 @@ func getDeviceAssets(dvc *desc.Device, isRoot bool) (assIDs []ssdp.AssetID) {
 // requests
 func (me *Server) createSearchIndex() (index ssdp.SearchIndex) {
 	index = make(ssdp.SearchIndex)
-	getDeviceIndex(&me.device.Desc.Device, true, &index)
+	getDeviceIndex(&me.Device.Desc.Device, true, &index)
 	return
 }
 

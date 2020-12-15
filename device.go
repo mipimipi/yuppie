@@ -2,7 +2,9 @@ package yuppie
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gitlab.com/mipimipi/yuppie/desc"
 	"gitlab.com/mipimipi/yuppie/internal/events"
@@ -16,7 +18,7 @@ type rootDevice struct {
 
 // device represents an UPnP device
 type device struct {
-	udn      string
+	UDN      string
 	services []*service
 	devices  []*device
 }
@@ -50,7 +52,14 @@ func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() c
 	log.Tracef("creating new device ...")
 
 	dvc = new(device)
-	dvc.udn = dvcDesc.UDN
+
+	// set UDN from description. If the UDN is empty or contains and empty
+	// UUID, generate a new UUID
+	if len(dvcDesc.UDN) == 0 || strings.ToLower(dvcDesc.UDN) == "uuid:" {
+		dvc.UDN = "uuid:" + uuid.New().String()
+	} else {
+		dvc.UDN = dvcDesc.UDN
+	}
 
 	// process service info
 	// note: this for-loop-variant had to be chosen since
@@ -64,7 +73,7 @@ func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() c
 		var ver serviceVersion
 		ver, err = newServiceVersion((*svcRefs)[i].ServiceType)
 		if err != nil {
-			err = errors.Wrapf(err, "could not determine service version for device '%s'", dvc.udn)
+			err = errors.Wrapf(err, "could not determine service version for device '%s'", dvc.UDN)
 			return
 		}
 
@@ -94,7 +103,7 @@ func newDevice(dvcDesc *desc.Device, svcDescs desc.ServiceMap, listener func() c
 	for _, subDesc := range dvcDesc.Devices {
 		subDvc, err := newDevice(&subDesc, svcDescs, listener, svcs)
 		if err != nil {
-			err = errors.Wrapf(err, "cannot create sub device of device '%s", dvc.udn)
+			err = errors.Wrapf(err, "cannot create sub device of device '%s", dvc.UDN)
 			return nil, err
 		}
 		dvc.devices = append(dvc.devices, subDvc)
