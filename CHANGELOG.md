@@ -1,4 +1,14 @@
-## [v0.3.0](https://gitlab.com/mipimipi/yuppie/-/tags/v0.2.2) (2020-12-13)
+## [v0.3.1](https://gitlab.com/mipimipi/yuppie/-/tags/v0.3.1) (2020-12-16)
+
+### Added
+
+* If root device description contains an empty UUID as UDN, a new UUID is generated
+
+### Changed
+
+* Corrected error that led to dump when using multicast eventing
+
+## [v0.3.0](https://gitlab.com/mipimipi/yuppie/-/tags/v0.3.0) (2020-12-13)
 
 ### Added
 
