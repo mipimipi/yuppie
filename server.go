@@ -60,13 +60,19 @@ func New(cfg Config, rootDesc *desc.RootDevice, svcDescs desc.ServiceMap) (srv *
 
 	if cfg.equal(Config{}) {
 		cfg = defaultCfg
-	}
+	} else {
+		// clear attributes that are under the control of the UPnP server
+		rootDesc.ClearAttr()
+		for _, svc := range svcDescs {
+			svc.ClearAttr()
+		}
 
-	// check that the device and service descriptions are OK
-	if err = validateInputData(rootDesc, svcDescs); err != nil {
-		err = errors.Wrap(err, "cannot create UPnP server")
-		log.Fatal(err)
-		return
+		// check that the device and service descriptions are OK
+		if err = validateInputData(rootDesc, svcDescs); err != nil {
+			err = errors.Wrap(err, "cannot create UPnP server")
+			log.Fatal(err)
+			return
+		}
 	}
 
 	srv = new(Server)
