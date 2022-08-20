@@ -1,5 +1,6 @@
+
 // ***********************************************************
-// GENERATED FILE - DO NOT EDIT BY HAND.
+// GENERATED FILE - DO NOT EDIT BY HAND. 
 // ***********************************************************
 
 package yuppie
@@ -15,32 +16,33 @@ import (
 )
 
 // constructors maps UPnP types to constructor functions
-var constructors = map[string]func(string) (StateVar, error){
-	"ui1":         func(v string) (StateVar, error) { return newUpnpUI1(v) },
-	"ui2":         func(v string) (StateVar, error) { return newUpnpUI2(v) },
-	"ui4":         func(v string) (StateVar, error) { return newUpnpUI4(v) },
-	"ui8":         func(v string) (StateVar, error) { return newUpnpUI8(v) },
-	"i1":          func(v string) (StateVar, error) { return newUpnpI1(v) },
-	"i2":          func(v string) (StateVar, error) { return newUpnpI2(v) },
-	"i4":          func(v string) (StateVar, error) { return newUpnpI4(v) },
-	"int":         func(v string) (StateVar, error) { return newUpnpInt(v) },
-	"r4":          func(v string) (StateVar, error) { return newUpnpR4(v) },
-	"r8":          func(v string) (StateVar, error) { return newUpnpR8(v) },
-	"number":      func(v string) (StateVar, error) { return newUpnpNumber(v) },
-	"fixed.14.4":  func(v string) (StateVar, error) { return newUpnpFixed14_4(v) },
-	"float":       func(v string) (StateVar, error) { return newUpnpFloat(v) },
-	"char":        func(v string) (StateVar, error) { return newUpnpChar(v) },
-	"string":      func(v string) (StateVar, error) { return newUpnpString(v) },
-	"date":        func(v string) (StateVar, error) { return newUpnpDate(v) },
-	"dateTime":    func(v string) (StateVar, error) { return newUpnpDateTime(v) },
+var constructors = map[string]func(string) (StateVar, error){ 
+	"ui1": func(v string) (StateVar, error) { return newUpnpUI1(v) },
+	"ui2": func(v string) (StateVar, error) { return newUpnpUI2(v) },
+	"ui4": func(v string) (StateVar, error) { return newUpnpUI4(v) },
+	"ui8": func(v string) (StateVar, error) { return newUpnpUI8(v) },
+	"i1": func(v string) (StateVar, error) { return newUpnpI1(v) },
+	"i2": func(v string) (StateVar, error) { return newUpnpI2(v) },
+	"i4": func(v string) (StateVar, error) { return newUpnpI4(v) },
+	"int": func(v string) (StateVar, error) { return newUpnpInt(v) },
+	"r4": func(v string) (StateVar, error) { return newUpnpR4(v) },
+	"r8": func(v string) (StateVar, error) { return newUpnpR8(v) },
+	"number": func(v string) (StateVar, error) { return newUpnpNumber(v) },
+	"fixed.14.4": func(v string) (StateVar, error) { return newUpnpFixed14_4(v) },
+	"float": func(v string) (StateVar, error) { return newUpnpFloat(v) },
+	"char": func(v string) (StateVar, error) { return newUpnpChar(v) },
+	"string": func(v string) (StateVar, error) { return newUpnpString(v) },
+	"date": func(v string) (StateVar, error) { return newUpnpDate(v) },
+	"dateTime": func(v string) (StateVar, error) { return newUpnpDateTime(v) },
 	"dateTime.tz": func(v string) (StateVar, error) { return newUpnpDateTimeTz(v) },
-	"time":        func(v string) (StateVar, error) { return newUpnpTimeOfDay(v) },
-	"time.tz":     func(v string) (StateVar, error) { return newUpnpTimeOfDayTz(v) },
-	"boolean":     func(v string) (StateVar, error) { return newUpnpBoolean(v) },
-	"bin.base64":  func(v string) (StateVar, error) { return newUpnpBinBase64(v) },
-	"bin.hex":     func(v string) (StateVar, error) { return newUpnpBinHex(v) },
-	"uri":         func(v string) (StateVar, error) { return newUpnpURI(v) },
+	"time": func(v string) (StateVar, error) { return newUpnpTimeOfDay(v) },
+	"time.tz": func(v string) (StateVar, error) { return newUpnpTimeOfDayTz(v) },
+	"boolean": func(v string) (StateVar, error) { return newUpnpBoolean(v) },
+	"bin.base64": func(v string) (StateVar, error) { return newUpnpBinBase64(v) },
+	"bin.hex": func(v string) (StateVar, error) { return newUpnpBinHex(v) },
+	"uri": func(v string) (StateVar, error) { return newUpnpURI(v) },
 }
+
 
 // upnpUI1 is the representation of the UPnP type ui1 as Golang type
 type upnpUI1 struct {
@@ -55,7 +57,7 @@ func newUpnpUI1(s string) (t *upnpUI1, err error) {
 		return nil, err
 	}
 
-	t = &upnpUI1{v, &sync.Mutex{}}
+	t = &upnpUI1{ v, &sync.Mutex{} }
 	return
 }
 
@@ -120,7 +122,7 @@ func newUpnpUI2(s string) (t *upnpUI2, err error) {
 		return nil, err
 	}
 
-	t = &upnpUI2{v, &sync.Mutex{}}
+	t = &upnpUI2{ v, &sync.Mutex{} }
 	return
 }
 
@@ -185,7 +187,7 @@ func newUpnpUI4(s string) (t *upnpUI4, err error) {
 		return nil, err
 	}
 
-	t = &upnpUI4{v, &sync.Mutex{}}
+	t = &upnpUI4{ v, &sync.Mutex{} }
 	return
 }
 
@@ -250,7 +252,7 @@ func newUpnpUI8(s string) (t *upnpUI8, err error) {
 		return nil, err
 	}
 
-	t = &upnpUI8{v, &sync.Mutex{}}
+	t = &upnpUI8{ v, &sync.Mutex{} }
 	return
 }
 
@@ -315,7 +317,7 @@ func newUpnpI1(s string) (t *upnpI1, err error) {
 		return nil, err
 	}
 
-	t = &upnpI1{v, &sync.Mutex{}}
+	t = &upnpI1{ v, &sync.Mutex{} }
 	return
 }
 
@@ -380,7 +382,7 @@ func newUpnpI2(s string) (t *upnpI2, err error) {
 		return nil, err
 	}
 
-	t = &upnpI2{v, &sync.Mutex{}}
+	t = &upnpI2{ v, &sync.Mutex{} }
 	return
 }
 
@@ -445,7 +447,7 @@ func newUpnpI4(s string) (t *upnpI4, err error) {
 		return nil, err
 	}
 
-	t = &upnpI4{v, &sync.Mutex{}}
+	t = &upnpI4{ v, &sync.Mutex{} }
 	return
 }
 
@@ -510,7 +512,7 @@ func newUpnpInt(s string) (t *upnpInt, err error) {
 		return nil, err
 	}
 
-	t = &upnpInt{v, &sync.Mutex{}}
+	t = &upnpInt{ v, &sync.Mutex{} }
 	return
 }
 
@@ -575,7 +577,7 @@ func newUpnpR4(s string) (t *upnpR4, err error) {
 		return nil, err
 	}
 
-	t = &upnpR4{v, &sync.Mutex{}}
+	t = &upnpR4{ v, &sync.Mutex{} }
 	return
 }
 
@@ -640,7 +642,7 @@ func newUpnpR8(s string) (t *upnpR8, err error) {
 		return nil, err
 	}
 
-	t = &upnpR8{v, &sync.Mutex{}}
+	t = &upnpR8{ v, &sync.Mutex{} }
 	return
 }
 
@@ -705,7 +707,7 @@ func newUpnpNumber(s string) (t *upnpNumber, err error) {
 		return nil, err
 	}
 
-	t = &upnpNumber{v, &sync.Mutex{}}
+	t = &upnpNumber{ v, &sync.Mutex{} }
 	return
 }
 
@@ -770,7 +772,7 @@ func newUpnpFixed14_4(s string) (t *upnpFixed14_4, err error) {
 		return nil, err
 	}
 
-	t = &upnpFixed14_4{v, &sync.Mutex{}}
+	t = &upnpFixed14_4{ v, &sync.Mutex{} }
 	return
 }
 
@@ -835,7 +837,7 @@ func newUpnpFloat(s string) (t *upnpFloat, err error) {
 		return nil, err
 	}
 
-	t = &upnpFloat{v, &sync.Mutex{}}
+	t = &upnpFloat{ v, &sync.Mutex{} }
 	return
 }
 
@@ -900,7 +902,7 @@ func newUpnpChar(s string) (t *upnpChar, err error) {
 		return nil, err
 	}
 
-	t = &upnpChar{v, &sync.Mutex{}}
+	t = &upnpChar{ v, &sync.Mutex{} }
 	return
 }
 
@@ -965,7 +967,7 @@ func newUpnpString(s string) (t *upnpString, err error) {
 		return nil, err
 	}
 
-	t = &upnpString{v, &sync.Mutex{}}
+	t = &upnpString{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1030,7 +1032,7 @@ func newUpnpDate(s string) (t *upnpDate, err error) {
 		return nil, err
 	}
 
-	t = &upnpDate{v, &sync.Mutex{}}
+	t = &upnpDate{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1095,7 +1097,7 @@ func newUpnpDateTime(s string) (t *upnpDateTime, err error) {
 		return nil, err
 	}
 
-	t = &upnpDateTime{v, &sync.Mutex{}}
+	t = &upnpDateTime{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1160,7 +1162,7 @@ func newUpnpDateTimeTz(s string) (t *upnpDateTimeTz, err error) {
 		return nil, err
 	}
 
-	t = &upnpDateTimeTz{v, &sync.Mutex{}}
+	t = &upnpDateTimeTz{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1225,7 +1227,7 @@ func newUpnpTimeOfDay(s string) (t *upnpTimeOfDay, err error) {
 		return nil, err
 	}
 
-	t = &upnpTimeOfDay{v, &sync.Mutex{}}
+	t = &upnpTimeOfDay{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1290,7 +1292,7 @@ func newUpnpTimeOfDayTz(s string) (t *upnpTimeOfDayTz, err error) {
 		return nil, err
 	}
 
-	t = &upnpTimeOfDayTz{v, &sync.Mutex{}}
+	t = &upnpTimeOfDayTz{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1355,7 +1357,7 @@ func newUpnpBoolean(s string) (t *upnpBoolean, err error) {
 		return nil, err
 	}
 
-	t = &upnpBoolean{v, &sync.Mutex{}}
+	t = &upnpBoolean{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1420,7 +1422,7 @@ func newUpnpBinBase64(s string) (t *upnpBinBase64, err error) {
 		return nil, err
 	}
 
-	t = &upnpBinBase64{v, &sync.Mutex{}}
+	t = &upnpBinBase64{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1485,7 +1487,7 @@ func newUpnpBinHex(s string) (t *upnpBinHex, err error) {
 		return nil, err
 	}
 
-	t = &upnpBinHex{v, &sync.Mutex{}}
+	t = &upnpBinHex{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1550,7 +1552,7 @@ func newUpnpURI(s string) (t *upnpURI, err error) {
 		return nil, err
 	}
 
-	t = &upnpURI{v, &sync.Mutex{}}
+	t = &upnpURI{ v, &sync.Mutex{} }
 	return
 }
 
@@ -1601,6 +1603,7 @@ func (t *upnpURI) IsString() bool { return isString(t.val) }
 // IsZero returns true is the value of t is the zero value of that type,
 // otherwise false is returned
 func (t upnpURI) IsZero() bool { return reflect.ValueOf(t.val).IsZero() }
+
 
 // isNumeric returns true is val is a numeric value, otherwise false is returned
 func isNumeric(val interface{}) bool {

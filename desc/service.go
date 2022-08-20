@@ -3,7 +3,7 @@ package desc
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/pkg/errors"
@@ -34,7 +34,7 @@ func LoadService(filepath string) (svc *Service, err error) {
 		return
 	}
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		err = errors.Wrapf(err, "service description file '%s' couldn't be read", filepath)
 		log.Fatal(err)

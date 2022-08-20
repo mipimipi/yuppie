@@ -2,7 +2,7 @@ package yuppie
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -33,7 +33,7 @@ func (me *status) read(filepath string) (err error) {
 		return
 	}
 
-	f, err := ioutil.ReadFile(filepath)
+	f, err := os.ReadFile(filepath)
 	if err != nil {
 		err := errors.Wrapf(err, "couldn't read status file '%s'", filepath)
 		log.Fatal(err)
@@ -56,7 +56,7 @@ func (me *status) write(filepath string) (err error) {
 		return
 	}
 
-	if err = ioutil.WriteFile(filepath, out, 0666); err != nil {
+	if err = os.WriteFile(filepath, out, 0666); err != nil {
 		log.Errorf("couldn't write status to file: %v", err)
 		return
 	}

@@ -3,7 +3,7 @@ package yuppie
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path"
 	"regexp"
@@ -89,7 +89,7 @@ func (me *Server) parseSOAPAction(w http.ResponseWriter, r *http.Request) (id, a
 // action call and extract the arguments
 func (me *Server) parseSOAPArguments(w http.ResponseWriter, r *http.Request, svcID, act string) (args map[string]StateVar, err error) {
 	// get request body
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 
 	if err != nil {
 		me.sendSOAPFault(w,

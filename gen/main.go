@@ -10,7 +10,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // upnp2go is the structure for the mapping between UPnP and Go types
@@ -21,7 +23,7 @@ type upnp2Go struct {
 }
 
 func (me upnp2Go) TypeNameTitle() string {
-	return strings.Title(me.TypeName)
+	return cases.Title(language.Und, cases.NoLower).String(me.TypeName)
 }
 
 // Data contains the type mapping data to be passed to the template engine

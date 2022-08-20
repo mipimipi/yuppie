@@ -5,7 +5,7 @@ package desc
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"regexp"
@@ -85,7 +85,7 @@ func LoadRootDevice(filepath string) (dvc *RootDevice, err error) {
 		return
 	}
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		err = errors.Wrapf(err, "device description file '%s' couldn't be read", filepath)
 		log.Fatal(err)

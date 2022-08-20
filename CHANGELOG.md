@@ -1,8 +1,18 @@
+## [v0.4.0](https://gitlab.com/mipimipi/yuppie/-/tags/v0.4.0) (2022-08-20)
+
+### Added
+
+* Makefile to be able to trigger linting and create new release tags
+
+### Changed
+
+* Update to go 1.19: Replaced deprecated functions from io/ioutil and strings
+
 ## [v0.3.3](https://gitlab.com/mipimipi/yuppie/-/tags/v0.3.3) (2020-12-28)
 
 ### Changed
 
-* Corrected setting of CONFIGID.UPNP.ORG (it was increase too often)
+* Corrected setting of CONFIGID.UPNP.ORG (it was increased too often)
 
 ## [v0.3.2](https://gitlab.com/mipimipi/yuppie/-/tags/v0.3.2) (2020-12-18)
 

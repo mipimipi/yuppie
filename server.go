@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"runtime"
-	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -14,6 +13,8 @@ import (
 	"gitlab.com/mipimipi/yuppie/internal/events"
 	"gitlab.com/mipimipi/yuppie/internal/ssdp"
 	"gitlab.com/mipimipi/yuppie/internal/types"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var log *l.Entry
@@ -258,7 +259,7 @@ func (me *Server) Run(ctx context.Context, wg *sync.WaitGroup) {
 // "<OS>/<OS version> UPnP/<UPnP version> <product name>/<product version>"
 func (me *Server) ServerString() (s string) {
 	// OS
-	s = strings.Title(runtime.GOOS)
+	s = cases.Title(language.Und, cases.NoLower).String(runtime.GOOS)
 
 	// OS version
 	si, err := utils.Uname()
