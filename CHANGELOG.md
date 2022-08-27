@@ -1,3 +1,11 @@
+# Changelog
+
+## [v0.4.1](https://gitlab.com/mipimipi/yuppie/-/tags/v0.4.1) (2022-08-27)
+
+### Changed
+
+* Replaced package gitlab.com/mipimipi/go-utils by packages gitlab.com/go-utilities/*
+
 ## [v0.4.0](https://gitlab.com/mipimipi/yuppie/-/tags/v0.4.0) (2022-08-20)
 
 ### Added
