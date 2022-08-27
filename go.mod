@@ -7,12 +7,16 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
-	gitlab.com/mipimipi/go-utils v0.1.1
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234
+	gitlab.com/go-utilities/file v0.2.0
+	gitlab.com/go-utilities/filepath v0.1.0
+	gitlab.com/go-utilities/hash v0.1.0
+	gitlab.com/go-utilities/net v0.1.0
+	gitlab.com/go-utilities/reflect v0.1.0
+	gitlab.com/go-utilities/system v0.1.0
+	gitlab.com/go-utilities/time v0.1.0
+	gitlab.com/go-utilities/xml v0.1.0
+	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
 	golang.org/x/text v0.3.7
 )
 
-require (
-	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
-	golang.org/x/sys v0.0.0-20220818161305-2296e01440c6 // indirect
-)
+require golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect

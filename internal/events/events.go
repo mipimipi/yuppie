@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	l "github.com/sirupsen/logrus"
-	"gitlab.com/mipimipi/go-utils"
+	t "gitlab.com/go-utilities/time"
 	"gitlab.com/mipimipi/yuppie/internal/network"
 	"gitlab.com/mipimipi/yuppie/internal/types"
 )
@@ -307,7 +307,7 @@ func broadcast(key uint32, sv StateVar, infs []net.Interface, bootID uint32) {
 	for i := 0; i < network.UDPMsgRepetitions; i++ {
 		// sleep for a few hundert milliseconds
 		if i != 0 {
-			utils.RandomNap(500)
+			t.RandomNap(500)
 		}
 		// send event message from all interfaces
 		for _, inf := range infs {

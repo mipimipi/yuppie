@@ -11,8 +11,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	utils "gitlab.com/mipimipi/go-utils"
-	"gitlab.com/mipimipi/go-utils/file"
+	fp "gitlab.com/go-utilities/filepath"
+	"gitlab.com/go-utilities/xml"
 	"gitlab.com/mipimipi/yuppie/internal/events"
 )
 
@@ -104,7 +104,7 @@ func (me *Server) deviceDescHandler(w http.ResponseWriter, r *http.Request) {
 	me.setDescPaths()
 
 	// render service description
-	desc, err := utils.MarshalXML(me.Device.Desc)
+	desc, err := xml.MarshalXML(me.Device.Desc)
 	if err != nil {
 		log.Errorf("couldn't marshal device description: %v", err)
 		http.Error(w, "can't create device description", http.StatusInternalServerError)
@@ -150,7 +150,7 @@ func (me *Server) serviceDescHandler(w http.ResponseWriter, r *http.Request) {
 	// extract id of requested service. That's the filename of requested
 	// description without ".xml" suffix
 	_, filename := path.Split(r.URL.Path)
-	id := file.PathTrunk(filename)
+	id := fp.PathTrunk(filename)
 
 	log.Tracef("service description for %s requested", id)
 
@@ -167,7 +167,7 @@ func (me *Server) serviceDescHandler(w http.ResponseWriter, r *http.Request) {
 	svc.desc.ConfigID = me.configID.Val()
 
 	// render service description
-	desc, err := utils.MarshalXML(svc.desc)
+	desc, err := xml.MarshalXML(svc.desc)
 	if err != nil {
 		err = errors.Wrap(err, "cannot render service description")
 		log.Fatal(err)

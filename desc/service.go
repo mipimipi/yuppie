@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"gitlab.com/mipimipi/go-utils"
+	h "gitlab.com/go-utilities/hash"
 )
 
 // Service represents a service description as described in
@@ -66,7 +66,7 @@ func (me *Service) Hash() (hash uint64, err error) {
 		return
 	}
 
-	hash = utils.HashUint64("%x", s)
+	hash = h.HashUint64("%x", s)
 	return
 }
 

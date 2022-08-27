@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/fwojciec/clock"
-	utils "gitlab.com/mipimipi/go-utils"
+	t "gitlab.com/go-utilities/time"
 	"gitlab.com/mipimipi/yuppie/internal/network"
 )
 
@@ -38,7 +38,7 @@ func (me *DiscoveryData) String() (s string) {
 
 // notify sends alive messages regularly
 func (me *Server) notify() {
-	utils.RandomNap(1000)
+	t.RandomNap(1000)
 	me.sendAlive()
 	me.notifyStopped = make(chan struct{})
 
@@ -66,7 +66,7 @@ func (me *Server) sendAlive() {
 	for i := 0; i < network.UDPMsgRepetitions; i++ {
 		// sleep for a few hundert milliseconds as required by the UPnP Device
 		// Architecture 2.0
-		utils.RandomNap(1000)
+		t.RandomNap(1000)
 		// send alive messages
 		for _, assID := range me.data.AssIDs {
 			msg := new(bytes.Buffer)
@@ -97,7 +97,7 @@ func (me *Server) sendByeBye() {
 	for i := 0; i < network.UDPMsgRepetitions; i++ {
 		// sleep for a few hundert milliseconds as required by the UPnP Device
 		// Architecture 2.0
-		utils.RandomNap(1000)
+		t.RandomNap(1000)
 		// send byebye messages
 		for _, assID := range me.data.AssIDs {
 			msg := new(bytes.Buffer)

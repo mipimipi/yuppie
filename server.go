@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	l "github.com/sirupsen/logrus"
-	utils "gitlab.com/mipimipi/go-utils"
+	"gitlab.com/go-utilities/system"
 	"gitlab.com/mipimipi/yuppie/desc"
 	"gitlab.com/mipimipi/yuppie/internal/events"
 	"gitlab.com/mipimipi/yuppie/internal/ssdp"
@@ -262,7 +262,7 @@ func (me *Server) ServerString() (s string) {
 	s = cases.Title(language.Und, cases.NoLower).String(runtime.GOOS)
 
 	// OS version
-	si, err := utils.Uname()
+	si, err := system.Uname()
 	if err != nil {
 		log.Error(err)
 	} else {

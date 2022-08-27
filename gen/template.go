@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	utils "gitlab.com/mipimipi/go-utils"
+	r "gitlab.com/go-utilities/reflect"
 )
 
 // constructors maps UPnP types to constructor functions
@@ -95,7 +95,7 @@ func (t {{.TypeName}}) IsZero() bool { return reflect.ValueOf(t.val).IsZero() }
 
 // isNumeric returns true is val is a numeric value, otherwise false is returned
 func isNumeric(val interface{}) bool {
-	return utils.Contains(
+	return r.Contains(
 		[]reflect.Kind{reflect.Float32, reflect.Float64,
 			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,

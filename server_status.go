@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	file "gitlab.com/mipimipi/go-utils/file"
+	"gitlab.com/go-utilities/file"
 )
 
 // status represents the status of the UPnP server for persistence. The status

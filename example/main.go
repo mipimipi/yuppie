@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/mipimipi/go-utils"
+	n "gitlab.com/go-utilities/net"
 	"gitlab.com/mipimipi/yuppie"
 	"gitlab.com/mipimipi/yuppie/desc"
 )
@@ -26,7 +26,7 @@ var (
 
 func init() {
 	// determine external IP address
-	addr, err := utils.IPaddr()
+	addr, err := n.IPaddr()
 	if err != nil {
 		log.Panicf("could not determine own IP addr: %v", err)
 		panic(fmt.Sprintf("could not determine own IP addr: %v", err))

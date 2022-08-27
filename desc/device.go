@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	l "github.com/sirupsen/logrus"
-	"gitlab.com/mipimipi/go-utils"
+	h "gitlab.com/go-utilities/hash"
 )
 
 var log *l.Entry
@@ -118,7 +118,7 @@ func (me *RootDevice) Hash() (hash uint64, err error) {
 		return
 	}
 
-	hash = utils.HashUint64("%x", s)
+	hash = h.HashUint64("%x", s)
 	return
 }
 
