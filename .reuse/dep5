@@ -13,6 +13,7 @@ Files: internal/*
        go.mod
        go.sum
        *.go
+       Makefile
 Copyright: 2020 Michael Picht <mipi@fsfe.org>
 License: GPL-3.0-or-later
 
